@@ -25,7 +25,7 @@ public class RoomController {
     private final static Logger LOGGER = Logger.getLogger(RoomController.class.getName());
 
     @GetMapping("/getRooms")
-    public ResponseEntity<?> getActiveProjects(){
+    public ResponseEntity<?> getRooms(){
 
         LOGGER.info("Begin request for getting collection of rooms");
 

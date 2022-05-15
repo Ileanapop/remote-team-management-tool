@@ -4,6 +4,9 @@ package com.example.teamuptool.controller;
 import com.example.teamuptool.dto.*;
 import com.example.teamuptool.service.ManagerService;
 import com.example.teamuptool.service.security.AuthResponse;
+import com.example.teamuptool.service.security.EmployeeAuthorize;
+import com.example.teamuptool.service.security.ManagerAuthorize;
+import com.example.teamuptool.service.security.SecurityContext;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
@@ -28,7 +31,19 @@ public class ManagerController {
     private ManagerService managerService;
 
     @GetMapping("/getRoles")
-    public ResponseEntity<?> getActiveProjects(){
+    public ResponseEntity<?> getProjectRoles(HttpServletRequest request){
+
+        LOGGER.info("Authorize manager");
+
+        SecurityContext securityContext = new SecurityContext();
+        securityContext.setSecurityStrategy(new ManagerAuthorize());
+        ResponseEntity<?> responseEntity = securityContext.secureRequest(request);
+        if(responseEntity.getStatusCode() != HttpStatus.OK)
+        {
+            return responseEntity;
+        }
+
+        LOGGER.info("Manager authorized");
 
         LOGGER.info("Begin request for getting collection of role types");
 
@@ -40,7 +55,19 @@ public class ManagerController {
     }
 
     @GetMapping("/searchUser")
-    public ResponseEntity<?> getAvailabilityOfEmployee(@Param("emailEmployee") String emailEmployee, @Param("emailManager")String emailManager) throws ParseException {
+    public ResponseEntity<?> getAvailabilityOfEmployee(@Param("emailEmployee") String emailEmployee, @Param("emailManager")String emailManager, HttpServletRequest request) throws ParseException {
+
+        LOGGER.info("Authorize manager");
+
+        SecurityContext securityContext = new SecurityContext();
+        securityContext.setSecurityStrategy(new ManagerAuthorize());
+        ResponseEntity<?> responseEntity = securityContext.secureRequest(request);
+        if(responseEntity.getStatusCode() != HttpStatus.OK)
+        {
+            return responseEntity;
+        }
+
+        LOGGER.info("Manager authorized");
 
         LOGGER.info("Get availability of employee");
 

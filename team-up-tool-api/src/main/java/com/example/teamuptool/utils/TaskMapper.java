@@ -8,15 +8,12 @@ import com.example.teamuptool.model.Task;
 public class TaskMapper {
 
     public TaskDTO convertToDto(Task task){
+        return TaskDTO.builder()
+                .employee(task.getEmployee().getAccount().getEmail())
+                .deadline(task.getDeadline().toString())
+                .manager(task.getProjectManager().getAccount().getEmail())
+                .description(task.getDescription())
+                .id(task.getId()).build();
 
-        TaskDTO taskDTO = new TaskDTO();
-
-        taskDTO.setEmployee(task.getEmployee().getAccount().getEmail());
-        taskDTO.setDeadline(task.getDeadline().toString());
-        taskDTO.setManager(task.getProjectManager().getAccount().getEmail());
-        taskDTO.setDescription(task.getDescription());
-        taskDTO.setId(task.getId());
-        return taskDTO;
     }
-
 }

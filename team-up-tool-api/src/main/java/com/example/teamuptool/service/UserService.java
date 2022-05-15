@@ -64,6 +64,13 @@ public class UserService {
         return null;
     }
 
+
+    /**
+     * Method for authenticating an employee
+     * @param userLoginDTO credentials of the employee
+     * @return employee data including name, phone and email or null if employee does not exists or the credentials were
+     * incorrect
+     */
     public UserDTO loginEmployee(UserLoginDTO userLoginDTO)
     {
         Optional<Employee> employee =employeeRepository.findByAccount_Email(userLoginDTO.getEmail());
@@ -82,6 +89,12 @@ public class UserService {
         return null;
     }
 
+    /**
+     * Method for authenticating a manager
+     * @param userLoginDTO manager credentials to be verified
+     * @return manager data including name, phone and email or null if maanger does not exists or the credentials were
+     * incorrect
+     */
     public UserDTO loginProjectManager(UserLoginDTO userLoginDTO)
     {
         Optional<ProjectManager> manager =projectManagerRepository.findByAccount_Email(userLoginDTO.getEmail());
@@ -100,6 +113,11 @@ public class UserService {
         return null;
     }
 
+    /**
+     * Method for authenticating a customer
+     * @param userLoginDTO customer credentials
+     * @return the customer data including name, phone, email
+     */
     public UserDTO loginCustomer(UserLoginDTO userLoginDTO)
     {
         Optional<Customer> customer =customerRepository.findByAccount_Email(userLoginDTO.getEmail());
@@ -118,6 +136,13 @@ public class UserService {
         return null;
     }
 
+    /**
+     * Method for getting the availability of a user between the provided time interval
+     * @param email of the user for who the availability is checked
+     * @param startTime of the meeting
+     * @param endTime of meeting
+     * @return availability status of the user
+     */
     public AvailabilityDTO getUserByEmailAndAvailability(String email, Date startTime, Date endTime)
     {
         AvailabilityDTO result1 = getEmployeeByEmailAndAvailability(email,startTime,endTime);
@@ -126,13 +151,18 @@ public class UserService {
         }
         return result1;
     }
+
+
     public AvailabilityDTO getEmployeeByEmailAndAvailability(String email, Date startTime, Date endTime){
+
+        LOGGER.info("Verify employee email");
         Optional<Employee> employee = employeeRepository.findByAccount_Email(email);
         if(employee.isEmpty())
             return null;
 
         boolean available=true;
 
+        LOGGER.info("Verify availability of employee");
         for(Meeting meeting: employee.get().getMeetings()){
             Date s1 = meeting.getStartTime();
             Date e1 = meeting.getEndTime();
@@ -149,6 +179,7 @@ public class UserService {
             }
 
         }
+        LOGGER.info("Return availability status");
         if(available)
             return new AvailabilityDTO(employee.get().getAccount().getEmail(),"AVAILABLE");
         else
@@ -157,12 +188,15 @@ public class UserService {
 
 
     public AvailabilityDTO getManagerByEmailAndAvailability(String email, Date startTime, Date endTime){
+
+        LOGGER.info("Check manager email");
         Optional<ProjectManager> manager = projectManagerRepository.findByAccount_Email(email);
         if(manager.isEmpty())
             return null;
 
         boolean available=true;
 
+        LOGGER.info("Verify availability of manager");
         for(Meeting meeting: manager.get().getMeetings()){
             Date s1 = meeting.getStartTime();
             Date e1 = meeting.getEndTime();
@@ -175,19 +209,28 @@ public class UserService {
             }
 
         }
+        LOGGER.info("Return manager availability");
         if(available)
             return new AvailabilityDTO(manager.get().getAccount().getEmail(), "AVAILABLE");
         else
             return new AvailabilityDTO(manager.get().getAccount().getEmail(), "NOT AVAILABLE");
     }
 
+    /**
+     * Method for creating a new meeting
+     * @param meetingDTO details of new meeting: start time, end time, required users
+     * @return true if the meeting was created successfully
+     * @throws ParseException if the provided dates could not be parsed accordingly
+     */
     public boolean createMeeting(MeetingDTO meetingDTO) throws ParseException {
 
+        LOGGER.info("Convert date to correct format");
         Meeting newMeeting = new Meeting();
         ISO8601DateFormat df = new ISO8601DateFormat();
         Date startDate = df.parse(meetingDTO.getStartTime());
         Date endDate = df.parse(meetingDTO.getEndTime());
 
+        LOGGER.info("Check correctness of time details");
         if(endDate.before(startDate))
             return false;
 
@@ -196,6 +239,7 @@ public class UserService {
         System.out.println("Meeting link: " + meetingDTO.getLink());
         newMeeting.setLink(meetingDTO.getLink());
 
+        LOGGER.info("Set meeting room");
         if(!meetingDTO.getRoom().equals("")){
             Optional<Room> room = roomRepository.findByName(meetingDTO.getRoom());
             if(room.isEmpty()){
@@ -203,6 +247,8 @@ public class UserService {
             }
             newMeeting.setRoom(room.get());
         }
+
+        LOGGER.info("Update calendar of required users");
         List<RegularUser> requiredUsers = new ArrayList<>();
         for(String userName: meetingDTO.getUserNames()){
             Optional<RegularUser> regularUser = userRepository.findByAccount_Email(userName);
@@ -223,13 +269,20 @@ public class UserService {
 
     }
 
+    /**
+     * Method for getting the future meetings of a user
+     * @param email of the user
+     * @return the list of meetings of the user
+     */
     public List<ViewMeetingDTO> getMeetings(String email){
+        LOGGER.info("Verify user email");
         Optional<RegularUser> regularUser = userRepository.findByAccount_Email(email);
 
         if(regularUser.isEmpty()){
             return null;
         }
 
+        LOGGER.info("Initialize list of meetings");
         List<ViewMeetingDTO> viewMeetingDTOS = new ArrayList<>();
         ViewMeetingMapper viewMeetingMapper = new ViewMeetingMapper();
         Date date = new Date();

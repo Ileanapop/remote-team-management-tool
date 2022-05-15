@@ -8,8 +8,7 @@ import com.example.teamuptool.dto.TaskDTO;
 import com.example.teamuptool.service.AdministratorService;
 import com.example.teamuptool.service.EmployeeService;
 import com.example.teamuptool.service.UserService;
-import com.example.teamuptool.service.security.AdminAuthorize;
-import com.example.teamuptool.service.security.JWTUtil;
+import com.example.teamuptool.service.security.*;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
@@ -37,12 +36,29 @@ public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
 
+
     private final static Logger LOGGER = Logger.getLogger(EmployeeController.class.getName());
 
     @GetMapping("/searchUser")
-    public ResponseEntity<?> getAvailabilityOfEmployee(@Param("email") String email, @Param("startTime")String startTime, @Param("endTime")String endTime) throws ParseException {
+    public ResponseEntity<?> getAvailabilityOfEmployee(@Param("email") String email, @Param("startTime")String startTime, @Param("endTime")String endTime, HttpServletRequest request) throws ParseException {
 
         LOGGER.info("Verify id the employee is Available in that time periods");
+
+        LOGGER.info("Authorize user");
+
+        SecurityContext securityContext = new SecurityContext();
+        securityContext.setSecurityStrategy(new EmployeeAuthorize());
+        ResponseEntity<?> responseEntity = securityContext.secureRequest(request);
+        if(responseEntity.getStatusCode() != HttpStatus.OK)
+        {
+            securityContext.setSecurityStrategy(new ManagerAuthorize());
+            ResponseEntity<?> responseEntity2 = securityContext.secureRequest(request);
+            if(responseEntity2.getStatusCode() != HttpStatus.OK){
+                return responseEntity2;
+            }
+        }
+
+        LOGGER.info("User authorized");
 
         ISO8601DateFormat df = new ISO8601DateFormat();
         Date startDate = df.parse(startTime);
@@ -64,9 +80,21 @@ public class EmployeeController {
     }
 
     @GetMapping("/getTasks")
-    public ResponseEntity<?> getEmployeeTasks(@Param("email") String email){
+    public ResponseEntity<?> getEmployeeTasks(@Param("email") String email,HttpServletRequest request){
 
         LOGGER.info("Get tasks of employee ");
+
+        LOGGER.info("Authorize user");
+
+        SecurityContext securityContext = new SecurityContext();
+        securityContext.setSecurityStrategy(new EmployeeAuthorize());
+        ResponseEntity<?> responseEntity = securityContext.secureRequest(request);
+        if(responseEntity.getStatusCode() != HttpStatus.OK)
+        {
+            return responseEntity;
+        }
+
+        LOGGER.info("User authorized");
 
         List<TaskDTO> tasks = employeeService.getEmployeeTasks(email);
 
@@ -78,6 +106,16 @@ public class EmployeeController {
 
     @DeleteMapping("/doTasks")
     public ResponseEntity<?> doTasks(@Valid @RequestBody ListTasksDTO listTasksDTO, HttpServletRequest request){
+
+        LOGGER.info("Authorize user");
+
+        SecurityContext securityContext = new SecurityContext();
+        securityContext.setSecurityStrategy(new EmployeeAuthorize());
+        ResponseEntity<?> responseEntity = securityContext.secureRequest(request);
+        if(responseEntity.getStatusCode() != HttpStatus.OK)
+        {
+            return responseEntity;
+        }
 
         LOGGER.info("Delete tasks of employee ");
 

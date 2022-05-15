@@ -3,6 +3,7 @@ package com.example.teamuptool.controller;
 
 import com.example.teamuptool.dto.AdministratorDTO;
 import com.example.teamuptool.dto.EmployeeDTO;
+import com.example.teamuptool.dto.ProjectDTO;
 import com.example.teamuptool.dto.UserDTO;
 import com.example.teamuptool.service.AdministratorService;
 import com.example.teamuptool.service.UserService;
@@ -161,6 +162,40 @@ public class AdministratorController {
         }
         else
             return new ResponseEntity<>("Employee Profile cannot be updated",HttpStatus.OK);
+
+    }
+
+    @GetMapping("/getManagerData")
+    public ResponseEntity<?> getManagerData(@Param("email") String email, HttpServletRequest request){
+
+        LOGGER.info("Begin request for getting manager project data");
+        LOGGER.info("Authorize Admin");
+        if(adminAuthorize.authorizeAdmin(request) == AuthResponse.UNAUTHENTICATED){
+            return new ResponseEntity<String>("UNAUTHENTICATED", HttpStatus.UNAUTHORIZED);
+        }
+        LOGGER.info("Admin authorized");
+
+        ProjectDTO projectDTO = administratorService.getManagerProjectData(email);
+
+        return new ResponseEntity<>(projectDTO,HttpStatus.OK);
+
+    }
+
+    @PutMapping("/updateManager")
+    public ResponseEntity<?> updateManager(@Valid @RequestBody ProjectDTO projectDTO, HttpServletRequest request){
+
+        LOGGER.info("Begin request for updating manager project data");
+        LOGGER.info("Authorize Admin");
+        if(adminAuthorize.authorizeAdmin(request) == AuthResponse.UNAUTHENTICATED){
+            return new ResponseEntity<String>("UNAUTHENTICATED", HttpStatus.UNAUTHORIZED);
+        }
+        LOGGER.info("Admin authorized");
+
+        boolean result = administratorService.updateManagerData(projectDTO);
+        if(result)
+            return new ResponseEntity<>(true,HttpStatus.OK);
+        else
+            return ResponseEntity.badRequest().body("Error: cannot perform update");
 
     }
 

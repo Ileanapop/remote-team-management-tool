@@ -7,12 +7,11 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
-@Component
-public class JWTUtil {
+public class JWT2 {
+
 
     @Value("${jwt.secret}")
     private String secret;
@@ -33,22 +32,13 @@ public class JWTUtil {
     }
 
     public String validateTokenAndRetrieveSubject(String token) throws JWTVerificationException {
-        JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secret))
-                .withSubject("UserAuth")
-                .withIssuer("TeamManagementTool")
-                .build();
-        DecodedJWT jwt = verifier.verify(token);
-
-        return jwt.getClaim("email").asString();
+        DecodedJWT decodedJWT = JWT.decode(token);
+        return decodedJWT.getClaim("email").asString();
     }
 
     public String retrieveUserType(String token)throws JWTVerificationException {
-        JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secret))
-                .withSubject("UserAuth")
-                .withIssuer("TeamManagementTool")
-                .build();
-        DecodedJWT jwt = verifier.verify(token);
-        return jwt.getClaim("type").asString();
+        DecodedJWT decodedJWT = JWT.decode(token);
+        return decodedJWT.getClaim("type").asString();
     }
 
 }

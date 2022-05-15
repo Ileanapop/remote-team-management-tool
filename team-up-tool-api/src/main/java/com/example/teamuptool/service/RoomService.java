@@ -22,10 +22,17 @@ public class RoomService {
     public RoomService() {
     }
 
+
+    /**
+     * Method for getting existing rooms when creating a new meeting
+     * @return list of room names
+     */
     public List<String> getAllRooms(){
 
+        LOGGER.info("Get All existing rooms");
         List<Room> rooms = roomRepository.findAll();
 
+        LOGGER.info("Construct list of room names");
         List<String> roomNames = new ArrayList<>();
 
         for(Room room: rooms){
